@@ -1,6 +1,7 @@
 # load libraries
 library(neuralnet)
 library(MASS)
+library(hydroGOF)
 
 set.seed(500)
 
@@ -51,7 +52,7 @@ final_test_data <- scaled_test
 
 n <- names(final_train_data)
 f <- as.formula(paste("despesatotal ~", paste(n[!n %in% "despesatotal"], collapse = " + ")))
-nn <- neuralnet(f,data=final_train_data,hidden=c(5,3),linear.output=T,rep=100,lifesign="minimal")
+nn <- neuralnet(f,data=final_train_data,hidden=c(10,10,10,10),linear.output=T,rep=10,lifesign="full")
 
 #plot(nn)
 
@@ -62,10 +63,11 @@ test.r <- (final_test_data$despesatotal)*(max(test_data$despesatotal)-min(test_d
 
 MSE.nn <- sum((test.r - pr.nn_denormalized)^2)/nrow(test_data)
 
+
 print(paste(MSE.lm,MSE.nn))
 
 # par(mfrow=c(1,2))
-# 
+# 121292202748781
 # plot(test_data$despesatotal,pr.nn_denormalized,col='red',main='Real vs predicted NN',pch=18,cex=0.7)
 # abline(0,1,lwd=2)
 # legend('bottomright',legend='NN',pch=18,col='red', bty='n')
