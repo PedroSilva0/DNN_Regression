@@ -1,9 +1,8 @@
 # load libraries
-library(caret)
-library(ISLR)
-library(caTools)
 library(neuralnet)
+library(MASS)
 
+set.seed(500)
 
 #LOAD DATA
 train_path="C:/Users/Utilizador/Desktop/Universidade/4ano/SI/Computação Natural/TP2/DNN_Regression/dados/tratados/treino/"
@@ -32,71 +31,56 @@ for (i in 2:length(test_files)){
   test_data=rbind(test_data,read.csv(file_path,header=TRUE,sep=";"))
 }
 
-final_train_data = as.data.frame(train_data)
-final_test_data= as.data.frame(test_data)
+lm.fit <- glm(despesatotal~., data=train_data)
+summary(lm.fit)
+pr.lm <- predict(lm.fit,test_data)
+MSE.lm <- sum((pr.lm - test_data$despesatotal)^2)/nrow(test_data)
 
-# #Normalization
-# # Create Vector of Column Max and Min Values
-# maxs_train <- apply(train_data[,2:12], 2, max)
-# maxs_test <-  apply(test_data[,2:12],2,max)
-# mins_train <- apply(train_data[,2:12], 2, min)
-# mins_test <-  apply(test_data[,2:12], 2, min)
-# 
-# # Use scale() and convert the resulting matrix to a data frame
-# scaled.train_data <- as.data.frame(scale(train_data[,2:12],center = mins_train, scale = maxs_train - mins_train))
-# scaled.test_data <- as.data.frame(scale(test_data[,2:12],center = mins_test, scale = maxs_test - mins_test))
+maxs_train <- apply(train_data, 2, max) 
+maxs_test  <- apply(test_data, 2, max) 
+mins_train <- apply(train_data, 2, min)
+mins_test  <- apply(test_data, 2, min)
 
-# # Normalize results
-# maxr_train <- max(train_data[,13])
-# maxr_test <-  max(test_data[,13])
-# minr_train <- min(train_data[,13])
-# minr_test <-  min(test_data[,13])
-# scaled.results_train <- as.data.frame(scale(train_data[,13],center = minr_train, scale = maxr_train - minr_train))
-# scaled.results_test <- as.data.frame(scale(test_data[,13],center = minr_test, scale = maxr_test - minr_test))
-# #TREINO
-# despesatotal= as.numeric(scaled.results_train$V1)
-# final_train_data = cbind(despesatotal,scaled.train_data)
-# #Teste
-# despesatotal= as.numeric(scaled.results_test$V1)
-# final_test_data = cbind(despesatotal,scaled.test_data)
+scaled_train <- as.data.frame(scale(train_data, center = mins_train, scale = maxs_train - mins_train))
+scaled_test <- as.data.frame(scale(test_data, center = mins_test, scale = maxs_test - mins_test))
 
+final_train_data <- scaled_train
+final_test_data <- scaled_test
 
-# #Activation function
-# feats <- names(scaled.train_data)
-# 
-# # Concatenate strings
-# f <- paste(feats,collapse=' + ')
-# f <- paste('despesatotal ~',f)
-# 
-# 
-#  
-# # Convert to formula
-# f <- as.formula(f)
+#exp = (final_test_data$despesatotal)*(max(test_data$despesatotal)-min(test_data$despesatotal))+min(test_data$despesatotal)
 
-
-
-nn <- neuralnet(despesatotal~.,train_data,hidden=c(10,10,10),linear.output=TRUE)
-
-
-# Compute Predictions off Test Set
-#net.results <- compute(nn,test[2:12])
-
-# Check out net.result
-#print(head(predicted.nn.values$net.result))
+n <- names(final_train_data)
+f <- as.formula(paste("despesatotal ~", paste(n[!n %in% "despesatotal"], collapse = " + ")))
+nn <- neuralnet(f,data=final_train_data,hidden=c(5,3),linear.output=T,rep=100,lifesign="minimal")
 
 #plot(nn)
 
-#Lets see what properties net.sqrt has
-# ls(net.results)
+pr.nn <- compute(nn,final_test_data[,1:12])
 
-#Lets see the results
-#print(net.results$net.result)
+pr.nn_denormalized <- pr.nn$net.result*(max(test_data$despesatotal)-min(test_data$despesatotal))+min(test_data$despesatotal)
+test.r <- (final_test_data$despesatotal)*(max(test_data$despesatotal)-min(test_data$despesatotal))+min(test_data$despesatotal)
 
-#Lets display a better version of the results
-# cleanoutput <- cbind(test$despesatotal,test$despesatotal,
-#                      as.data.frame(net.results$net.result))
-# colnames(cleanoutput) <- c("Input","Expected Output","Neural Net Output")
-# print(cleanoutput)
+MSE.nn <- sum((test.r - pr.nn_denormalized)^2)/nrow(test_data)
+
+print(paste(MSE.lm,MSE.nn))
+
+# par(mfrow=c(1,2))
+# 
+# plot(test_data$despesatotal,pr.nn_denormalized,col='red',main='Real vs predicted NN',pch=18,cex=0.7)
+# abline(0,1,lwd=2)
+# legend('bottomright',legend='NN',pch=18,col='red', bty='n')
+# 
+# plot(test_data$despesatotal,pr.lm,col='blue',main='Real vs predicted lm',pch=18, cex=0.7)
+# abline(0,1,lwd=2)
+# legend('bottomright',legend='LM',pch=18,col='blue', bty='n', cex=.95)
+
+plot(test_data$despesatotal,pr.nn_denormalized,col='red',main='Real vs predicted NN',pch=18,cex=0.7)
+points(test_data$despesatotal,pr.lm,col='blue',pch=18,cex=0.7)
+abline(0,1,lwd=2)
+legend('bottomright',legend=c('NN','LM'),pch=18,col=c('red','blue'))
+
+
+
 
 
 
