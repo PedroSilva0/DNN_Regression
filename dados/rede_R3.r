@@ -35,16 +35,16 @@ for (i in 2:length(test_files)){
 final_train_data = as.data.frame(train_data)
 final_test_data= as.data.frame(test_data)
 
-#Normalization
-# Create Vector of Column Max and Min Values
-maxs_train <- apply(train_data[,2:12], 2, max)
-maxs_test <-  apply(test_data[,2:12],2,max)
-mins_train <- apply(train_data[,2:12], 2, min)
-mins_test <-  apply(test_data[,2:12], 2, min)
-
-# Use scale() and convert the resulting matrix to a data frame
-scaled.train_data <- as.data.frame(scale(train_data[,2:12],center = mins_train, scale = maxs_train - mins_train))
-scaled.test_data <- as.data.frame(scale(test_data[,2:12],center = mins_test, scale = maxs_test - mins_test))
+# #Normalization
+# # Create Vector of Column Max and Min Values
+# maxs_train <- apply(train_data[,2:12], 2, max)
+# maxs_test <-  apply(test_data[,2:12],2,max)
+# mins_train <- apply(train_data[,2:12], 2, min)
+# mins_test <-  apply(test_data[,2:12], 2, min)
+# 
+# # Use scale() and convert the resulting matrix to a data frame
+# scaled.train_data <- as.data.frame(scale(train_data[,2:12],center = mins_train, scale = maxs_train - mins_train))
+# scaled.test_data <- as.data.frame(scale(test_data[,2:12],center = mins_test, scale = maxs_test - mins_test))
 
 # # Normalize results
 # maxr_train <- max(train_data[,13])
@@ -72,47 +72,31 @@ scaled.test_data <- as.data.frame(scale(test_data[,2:12],center = mins_test, sca
 #  
 # # Convert to formula
 # f <- as.formula(f)
- 
-# prepare resampling method
-control <- trainControl(method="cv", number=100,verboseIter=FALSE,repeats=100)
-set.seed(7)
-#train$despesatotal;- factor(train$despesatotal)
-#factor(final_train_data$despesatotal)
-fit <- train(despesatotal~., data=final_train_data, method="lm", metric="RMSE", trControl=control,preProc = c("center", "scale"))
-#print(fit)
-fit
 
- 
-test=predict(fit,newdata=final_test_data,type="raw")
- 
-# summary(test)
-# stripplot(fit)
-# xyplot(test)
- 
- 
- 
-#nn <- neuralnet(f,train,hidden=c(10,10,10),linear.output=TRUE)
- 
- 
+
+
+nn <- neuralnet(despesatotal~.,train_data,hidden=c(10,10,10),linear.output=TRUE)
+
+
 # Compute Predictions off Test Set
 #net.results <- compute(nn,test[2:12])
- 
+
 # Check out net.result
 #print(head(predicted.nn.values$net.result))
- 
+
 #plot(nn)
- 
+
 #Lets see what properties net.sqrt has
 # ls(net.results)
- 
+
 #Lets see the results
 #print(net.results$net.result)
- 
+
 #Lets display a better version of the results
 # cleanoutput <- cbind(test$despesatotal,test$despesatotal,
 #                      as.data.frame(net.results$net.result))
 # colnames(cleanoutput) <- c("Input","Expected Output","Neural Net Output")
 # print(cleanoutput)
- 
- 
+
+
 
