@@ -1,7 +1,6 @@
 # load libraries
 library(neuralnet)
 library(MASS)
-library(hydroGOF)
 
 set.seed(500)
 
@@ -61,12 +60,12 @@ pr.nn <- compute(nn,final_test_data[,1:12])
 pr.nn_denormalized <- pr.nn$net.result*(max(test_data$despesatotal)-min(test_data$despesatotal))+min(test_data$despesatotal)
 test.r <- (final_test_data$despesatotal)*(max(test_data$despesatotal)-min(test_data$despesatotal))+min(test_data$despesatotal)
 
-MSE.nn <- sum((test.r - pr.nn_denormalized)^2)/nrow(test_data)
+MSE.nn <- sum((test.r - pr.nn_denormalized)^2)/nrow(final_test_data)
 
 
 print(paste(MSE.lm,MSE.nn))
 
-# par(mfrow=c(1,2))
+par(mfrow=c(1,2))
 # 121292202748781
 # plot(test_data$despesatotal,pr.nn_denormalized,col='red',main='Real vs predicted NN',pch=18,cex=0.7)
 # abline(0,1,lwd=2)
